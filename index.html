@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Infinity Girl Name + Auto-Open</title>
+<style>
+  :root{--bg:#0f0f14;--card:#16161b;--accent:#ff66cc;--muted:#a6a6a6}
+  body{background:var(--bg);color:#fff;font-family:Inter,Arial,Helvetica,sans-serif;padding:28px;display:flex;align-items:center;justify-content:center;min-height:100vh}
+  .wrap{width:100%;max-width:760px}
+  h1{color:var(--accent);margin:0 0 12px}
+  .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  .row{display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
+  .left{flex:1}
+  button{background:linear-gradient(90deg,#ff3fa8,#ff66cc);border:0;color:#fff;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:600}
+  .btn-muted{background:transparent;border:1px solid rgba(255,255,255,.06);color:var(--muted);padding:8px 12px}
+  .output{margin-top:14px;padding:14px;border-radius:10px;background:#0d0d0f;border:1px solid rgba(255,255,255,.03);font-size:20px}
+  label{display:flex;gap:10px;align-items:center}
+  input[type="number"]{width:92px;padding:8px;border-radius:8px;border:1px solid #222;background:transparent;color:#fff}
+  select{padding:8px;border-radius:8px;background:#0d0d0f;color:#fff;border:1px solid #222}
+  .muted{color:var(--muted);font-size:13px;margin-top:8px}
+  .switch{position:relative;width:48px;height:28px;background:#222;border-radius:999px;cursor:pointer}
+  .knob{position:absolute;top:3px;left:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:all .18s}
+  .switch.on{background:linear-gradient(90deg,#2ecc71,#27ae60)}
+  .switch.on .knob{left:23px;background:#fff}
+  .controls{display:flex;gap:10px;flex-wrap:wrap}
+  small.note{display:block;color:#cfcfcf;margin-top:10px}
+  @media(max-width:520px){.row{flex-direction:column;align-items:stretch}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>💖 Infinity Girl Name Generator — Auto-Open</h1>
+  <div class="card">
+    <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+      <div>
+        <strong>Generate random girl name</strong>
+        <div class="muted">ব্যবহার: Generate → নাম দেখবে → (Auto-Open চালু হলে) নতুন ট্যাবে খুলবে</div>
+      </div>
+      <div style="text-align:right">
+        <button id="generateBtn">Generate</button>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <div class="left">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <label style="gap:8px">
+            <input id="autoOpenToggle" type="checkbox" />
+            <span>Auto-Open new tab</span>
+          </label>
+
+          <label style="gap:8px">
+            <input id="autoGenerateToggle" type="checkbox" />
+            <span>Auto-Generate names (loop)</span>
+          </label>
+
+          <label>
+            Interval (sec):
+            <input type="number" id="intervalSec" min="1" value="3" />
+          </label>
+
+          <label>
+            Open mode:
+            <select id="openMode">
+              <option value="fbsearch">Facebook Search (recommended)</option>
+              <option value="fakeprofile">Fake Profile Link (id style)</option>
+            </select>
+          </label>
+
+          <label>
+            <input id="startBtn" type="button" value="Start" class="btn-muted" />
+          </label>
+
+          <label>
+            <input id="stopBtn" type="button" value="Stop" class="btn-muted" />
+          </label>
+        </div>
+
+        <div class="muted" style="margin-top:8px">
+          Tip: প্রথমে Generate বাটন একবার ক্লিক দিন — অনেক ব্রাউজার user-gesture ছাড়া auto popups ব্লক করে। Start দিলে পরে auto-open কার্যকর হতে পারে।
+        </div>
+      </div>
+    </div>
+
+    <div class="output" id="output">Click Generate to start — a random name will appear here.</div>
+
+    <small class="note">Note: Some browsers block automatic new tabs/windows for pop-up safety. If auto-open blocked, allow popups or click Generate manually.</small>
+  </div>
+</div>
+
+<script>
+/* ---------------------------
+   NAME DATA (expand as needed)
+   --------------------------- */
+const firstNames = [
+  "Anika","Raisa","Sadia","Nijhum","Nusrat","Diya","Shila",
+  "Nadia","Urmi","Jannat","Sumaiya","Mim","Jerin","Shorna",
+  "Maliha","Mariya","Samia","Joya","Suborna","Mehjabin","Shanjida",
+  "Anushka","Priya","Rodela","Laboni","Rafiath","Mahima","Samira",
+  "Afia","Sohana","Meher","Nishi","Eva","Farzana","Tasmia",
+  "Trisha","Oyshee","Nodi","Mehjabin","Sanju","Ira","Lamiya","Tanima",
+  "Afsana","Mahira","Rubaina","Kubra","Nishita","Shamima","Nabila"
+];
+
+const lastNames = [
+  "Akter","Khan","Sultana","Chowdhury","Begum","Islam",
+  "Rahman","Hossain","Siddika","Parvin","Ahmed","Jahan",
+  "Mahmud","Rani","Sharmin","Sabrina","Ferdous","Mariam",
+  "Fariha","Adrita","Tabassum","Hasan","Mirza"
+];
+
+/* ---------------------------
+   UTIL: random name generator
+   --------------------------- */
+function randomName() {
+  const f = firstNames[Math.floor(Math.random()*firstNames.length)];
+  const l = lastNames[Math.floor(Math.random()*lastNames.length)];
+  return `${f} ${l}`;
+}
+
+/* ---------------------------
+   AUTO OPEN / LOOP CONTROL
+   --------------------------- */
+let autoOpen = false;
+let autoGen = false;
+let interval = 3000;
+let loopTimer = null;
+
+// DOM refs
+const output = document.getElementById('output');
+const generateBtn = document.getElementById('generateBtn');
+const autoOpenToggle = document.getElementById('autoOpenToggle');
+const autoGenerateToggle = document.getElementById('autoGenerateToggle');
+const intervalInput = document.getElementById('intervalSec');
+const openModeSelect = document.getElementById('openMode');
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+
+function showName(name){
+  output.innerHTML = `<strong>${escapeHtml(name)}</strong>`;
+}
+
+// escape for safety
+function escapeHtml(s){
+  return (s+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* Build URL to open:
+   - fbsearch: https://www.facebook.com/search/top?q=NAME
+   - fakeprofile: create a pseudo profile id link style with random digits
+*/
+function buildUrlForName(name, mode){
+  if(mode === 'fbsearch'){
+    return 'https://www.facebook.com/search/top?q=' + encodeURIComponent(name);
+  } else {
+    // fake profile: profile.php?id= + random 11-digit number (looks valid)
+    const randId = String(Math.floor(10000000000 + Math.random()*89999999999));
+    return `https://www.facebook.com/profile.php?id=${randId}`;
+  }
+}
+
+/* Try to open in new tab — may be blocked by popup blockers.
+   We still call window.open; browsers often allow if call chain started by user action.
+*/
+function tryOpen(url){
+  try {
+    window.open(url, '_blank');
+  } catch(e){
+    console.warn('open blocked', e);
+  }
+}
+
+/* Single generate + optional auto-open */
+function doGenerateAndMaybeOpen(){
+  const name = randomName();
+  showName(name);
+
+  if(autoOpen){
+    const mode = openModeSelect.value;
+    const url = buildUrlForName(name, mode);
+    tryOpen(url);
+  }
+}
+
+/* Start loop */
+function startLoop(){
+  // read options
+  autoOpen = autoOpenToggle.checked;
+  autoGen = autoGenerateToggle.checked;
+  let sec = parseFloat(intervalInput.value);
+  if(isNaN(sec) || sec < 1) sec = 3;
+  interval = Math.max(1, sec) * 1000;
+
+  // initial immediate generate (useful to satisfy gesture)
+  doGenerateAndMaybeOpen();
+
+  // clear old
+  if(loopTimer) clearInterval(loopTimer);
+
+  if(autoGen || autoOpen){
+    // set interval loop
+    loopTimer = setInterval(() => {
+      doGenerateAndMaybeOpen();
+    }, interval);
+  }
+}
+
+/* Stop loop */
+function stopLoop(){
+  if(loopTimer) {
+    clearInterval(loopTimer);
+    loopTimer = null;
+  }
+}
+
+/* UI events */
+generateBtn.addEventListener('click', () => {
+  // single generate (this is a user gesture -> can allow popups immediately)
+  doGenerateAndMaybeOpen();
+});
+
+startBtn.addEventListener('click', () => {
+  startLoop();
+});
+
+stopBtn.addEventListener('click', () => {
+  stopLoop();
+});
+
+/* Optional: allow toggles to start/stop quickly */
+autoGenerateToggle.addEventListener('change', () => {
+  if(autoGenerateToggle.checked){
+    startLoop();
+  } else {
+    stopLoop();
+  }
+});
+autoOpenToggle.addEventListener('change', () => {
+  // if enabling autoOpen and autoGen is already on, restart to ensure browser registers gesture
+  if(autoOpenToggle.checked && (autoGenerateToggle.checked)){
+    startLoop();
+  }
+});
+
+/* Clean up on unload */
+window.addEventListener('beforeunload', stopLoop);
+
+</script>
+</body>
+</html>
